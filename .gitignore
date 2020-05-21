@@ -19,3 +19,5 @@ static/
 posts/static/
 
 db.sqlite3
+
+setup.cfg

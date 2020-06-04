@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth.decorators import login_required
 
 from .forms import PostForm
-from .models import Post, User, Group
+from .models import Post, Group
 
 
 def index(request):
@@ -29,7 +29,6 @@ def new_post(request):
 
             return redirect('index')
         return render(request, 'new_post.html', {'form': form})
-
 
     form = PostForm()
 

@@ -10,6 +10,12 @@
             <div class="card-header">Создать пост</div>
             <div class="card-body">
 
+                {% if form.errors %}
+                        <div class="alert alert-danger" role="alert">
+                            {{ form.errors.text|escape }}
+                        </div>
+                {% endif %}
+
                 <form method="post">
                     {% csrf_token %}
 
@@ -26,7 +32,6 @@
                             </div>                
                         </div>
                     {% endfor %}
-                    {{ form.errors.text }}
 
                     <div class="col-md-6 offset-md-4">              
                             <button type="submit" class="btn btn-primary">

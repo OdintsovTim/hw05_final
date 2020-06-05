@@ -12,6 +12,10 @@ class PostForm(ModelForm):
             'group': 'Группа',
             'text': 'Ваш текст'
         }
+        help_texts = {
+            'group': 'Можно не выбирать группу',
+            'text': 'Минимум 10 символов'
+        }
 
     def clean_text(self):
         data = self.cleaned_data['text']

@@ -4,11 +4,11 @@ from django.contrib.flatpages import views
 
 
 urlpatterns = [
+    path('admin/', admin.site.urls),
     path('', include('posts.urls')),
     path('about/', include('django.contrib.flatpages.urls')),
     path("auth/", include("users.urls")),
     path("auth/", include("django.contrib.auth.urls")),
-    path('admin/', admin.site.urls),
 ]
 
 urlpatterns += [

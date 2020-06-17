@@ -4,6 +4,7 @@ from django.core.paginator import Paginator
 
 from .forms import PostForm
 from .models import Post, Group
+from users.forms import User
 
 
 def index(request):
@@ -11,7 +12,6 @@ def index(request):
     paginator = Paginator(latest, 10)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
-
 
     return render(request, "index.html", {'page': page, 'paginator': paginator})
 
@@ -50,9 +50,9 @@ def profile(request, username):
     paginator = Paginator(posts, 5)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
- 
+
     return render(request, 'profile.html', {'author': author, 'page': page, 'paginator': paginator})
- 
+
 
 def post_view(request, username, post_id):
     author = get_object_or_404(User, username=username)

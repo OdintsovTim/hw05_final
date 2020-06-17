@@ -29,6 +29,7 @@ def group_posts(request, slug):
 @login_required
 def new_post(request):
     form = PostForm()
+    title = 'Добавить запись'
 
     if request.method == 'POST':
         form = PostForm(request.POST)
@@ -40,14 +41,19 @@ def new_post(request):
 
             return redirect('index')
 
-    return render(request, "new_post.html", {'form': form})
+    return render(request, "new_post.html", {'form': form, 'title': title})
 
 
 def profile(request, username):
-        # тут тело функции
-        return render(request, 'profile.html', {})
+    author = get_object_or_404(User.objects.prefetch_related('posts'), username=username)
+    posts = author.posts.all()
+    paginator = Paginator(posts, 5)
+    page_number = request.GET.get('page')
+    page = paginator.get_page(page_number)
  
+    return render(request, 'profile.html', {'author': author, 'page': page, 'paginator': paginator})
  
+
 def post_view(request, username, post_id):
         # тут тело функции
         return render(request, 'post.html', {})

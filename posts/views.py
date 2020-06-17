@@ -61,9 +61,20 @@ def post_view(request, username, post_id):
     return render(request, 'post.html', {'author': author, 'post': post})
 
 
+@login_required
 def post_edit(request, username, post_id):
-        # тут тело функции. Не забудьте проверить, 
-        # что текущий пользователь — это автор записи.
-        # В качестве шаблона страницы редактирования укажите шаблон создания новой записи
-        # который вы создали раньше (вы могли назвать шаблон иначе)
-        return render(request, 'new_post.html', {})
+    title = 'Редактировать запись'
+    author = get_object_or_404(User, username=username)
+    post = get_object_or_404(author.posts, id=post_id)
+
+    if request.user.get_username() != username:
+        return redirect(f'/{author.username}/{post.id}/')
+
+    form = PostForm(request.POST or None, instance=post)
+
+    if form.is_valid():
+        form.save()
+
+        return redirect(f'/{author.username}/{post.id}/')
+
+    return render(request, 'new_post.html', {'form': form, 'title': title, 'post': post})

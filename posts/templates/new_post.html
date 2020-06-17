@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% block title %}Новая запись{% endblock %}
-{% block header %}Новая запись{% endblock %}
+{% block title %}{{ title }}{% endblock %}
+{% block header %}{{ title }}{% endblock %}
 {% load user_filters %}
 
 {% block content %}
@@ -35,7 +35,11 @@
 
                     <div class="col-md-6 offset-md-4">              
                             <button type="submit" class="btn btn-primary">
-                                Опубликовать пост
+                                {% if request.resolver_match.url_name == 'new_post' %}
+                                    Добавить запись
+                                {% else %}
+                                    Сохранить изменения
+                                {% endif %}
                             </button>
                     </div>
                 </form>

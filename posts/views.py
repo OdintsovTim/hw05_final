@@ -63,7 +63,7 @@ def post_view(request, username, post_id):
 
 @login_required
 def post_edit(request, username, post_id):
-    
+
     title = 'Редактировать запись'
     post = get_object_or_404(Post.objects.select_related('author'), id=post_id, author__username=username)
     author = post.author

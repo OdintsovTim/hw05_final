@@ -1,5 +1,4 @@
-from django.test import TestCase, Client
-from django.contrib.auth.models import AnonymousUser
+from django.test import TestCase
 
 from .models import User
 

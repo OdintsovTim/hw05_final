@@ -64,8 +64,8 @@ def post_view(request, username, post_id):
 @login_required
 def post_edit(request, username, post_id):
     title = 'Редактировать запись'
-    author = get_object_or_404(User.objects.prefetch_related('posts'), username=username)
-    post = get_object_or_404(author.posts, id=post_id)
+    post = get_object_or_404(Post.objects.select_related('author'), id=post_id, author__username=username)
+    author = post.author
 
     if request.user.get_username() != username:
         return redirect(f'/{author.username}/{post.id}/')

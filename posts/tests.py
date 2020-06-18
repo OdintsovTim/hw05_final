@@ -12,7 +12,7 @@ class TestProfile(TestCase):
             email='timodin@yandex.ru',
             password='Zxcvb12345'
         )
-        self.client.login(username='Timod', password='Zxcvb12345')
+        self.client.force_login(self.user)
 
     def test_profile(self):
         response = self.client.get(f'/{self.user.username}/')
@@ -29,7 +29,7 @@ class TestNewPost(TestCase):
             email='timodin@yandex.ru',
             password='Zxcvb12345'
         )
-        self.client.login(username='Timod', password='Zxcvb12345')
+        self.client.force_login(self.user)
 
     def test_new_post_authorized(self):
         response = self.client.get('/new/')

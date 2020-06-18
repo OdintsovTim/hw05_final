@@ -55,8 +55,8 @@ def profile(request, username):
 
 
 def post_view(request, username, post_id):
-    author = get_object_or_404(User.objects.prefetch_related('posts'), username=username)
-    post = get_object_or_404(author.posts, id=post_id)
+    post = get_object_or_404(Post.objects.select_related('author'), id=post_id, author__username=username)
+    author = post.author
 
     return render(request, 'post.html', {'author': author, 'post': post})
 

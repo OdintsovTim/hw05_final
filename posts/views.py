@@ -64,7 +64,6 @@ def post_view(request, username, post_id):
 @login_required
 def post_edit(request, username, post_id):
 
-    title = 'Редактировать запись'
     post = get_object_or_404(Post.objects.select_related('author'), id=post_id, author__username=username)
     author = post.author
 
@@ -76,5 +75,7 @@ def post_edit(request, username, post_id):
     if request.POST and form.is_valid():
         form.save()
         return redirect(f'/{author.username}/{post.id}/')
+
+    title = 'Редактировать запись'
 
     return render(request, 'new_post.html', {'form': form, 'title': title, 'post': post})

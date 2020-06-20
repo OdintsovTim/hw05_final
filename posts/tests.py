@@ -28,8 +28,9 @@ class TestPosts(TestCase):
         text = '12345zxcvbbn'
         self.client.post('/new/', {'text': text}, follow=True)
         post_id = self.user.posts.get(text=text).id
+        urls = ('/', f'/{self.user.username}/', f'/{self.user.username}/{post_id}/')
 
-        for url in ('/', f'/{self.user.username}/', f'/{self.user.username}/{post_id}/'):
+        for url in urls:
             response = self.client.get(url)
             self.assertContains(response, text)
 
@@ -38,11 +39,12 @@ class TestPosts(TestCase):
         text = '12345zxcvbbn'
         self.client.post('/new/', {'text': text}, follow=True)
         post_id = self.user.posts.get(text=text).id
+        urls = ('/', f'/{self.user.username}/', f'/{self.user.username}/{post_id}/')
 
         new_text = '123456zxc23243'
         self.client.post('/Timod/1/edit/', {'text': new_text}, follow=True)
 
-        for url in ('/', f'/{self.user.username}/', f'/{self.user.username}/{post_id}/'):
+        for url in urls:
             response = self.client.get(url)
             self.assertContains(response, new_text)
 

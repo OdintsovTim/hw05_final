@@ -1,7 +1,7 @@
 from django.test import TestCase, Client
 from django.urls import reverse
 
-from .models import User, Group
+from .models import User, Group, Post
 
 
 class TestPosts(TestCase):
@@ -23,11 +23,6 @@ class TestPosts(TestCase):
             slug='test_group',
             description='group for test'
         )
-        self.new_group = Group.objects.create(
-            title='new_group',
-            slug='new_group',
-            description='new_group'
-        )
 
         self.client.force_login(self.user)
 
@@ -39,50 +34,61 @@ class TestPosts(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_new_post_authorized(self):
+
         response = self.client.get(reverse('new_post'))
         self.assertEqual(response.status_code, 200)
 
-    def test_create_post(self):
         self.client.post(reverse('new_post'), {'text': self.text, 'group': self.group.id}, follow=True)
-        post = self.user.posts.get(text=self.text)
-        self.assertEqual(post.text, self.text)
+        self.assertEqual(Post.objects.count(), 1)
+
+    def test_post_existence(self):
+        post = Post.objects.create(
+            text=self.text,
+            group=self.group,
+            author=self.user,
+        )
+        self.assertEqual(Post.objects.count(), 1)
 
         urls = (
             reverse('index'),
             reverse('profile', kwargs={'username': self.user.username}),
             reverse('post', kwargs={'username': self.user.username, 'post_id': post.id}),
+            reverse('groups', kwargs={'slug': self.group.slug}),
         )
 
         for url in urls:
             response = self.client.get(url)
             self.assertContains(response, self.text)
 
-        group_response = self.client.get(reverse('groups', kwargs={'slug': self.group.slug}))
-        self.assertContains(group_response, self.text)
-
     def test_edit_post(self):
-        self.client.post(reverse('new_post'), {'text': self.text, 'group': self.group.id}, follow=True)
-        post = self.user.posts.get(text=self.text)
-        self.assertEqual(post.text, self.text)
+        post = Post.objects.create(
+            text=self.text,
+            group=self.group,
+            author=self.user,
+        )
+        new_group = Group.objects.create(
+            title='new_group',
+            slug='new_group',
+            description='new_group'
+        )
+        self.assertEqual(Post.objects.count(), 1)
 
         urls = (
             reverse('index'),
             reverse('profile', kwargs={'username': self.user.username}),
             reverse('post', kwargs={'username': self.user.username, 'post_id': post.id}),
+            reverse('groups', kwargs={'slug': new_group.slug}),
         )
 
         self.client.post(
             reverse('post_edit', kwargs={'username': self.user.username, 'post_id': post.id}),
-            {'text': self.new_text, 'group': self.new_group.id},
+            {'text': self.new_text, 'group': new_group.id},
             follow=True
         )
 
         for url in urls:
             response = self.client.get(url)
             self.assertContains(response, self.new_text)
-
-        group_response = self.client.get(reverse('groups', kwargs={'slug': self.new_group.slug}))
-        self.assertContains(group_response, self.new_text)
 
     def test_new_post_unauthorized(self):
         response = self.unauth_user_client.get('/new/')
@@ -92,3 +98,6 @@ class TestPosts(TestCase):
             status_code=302,
             target_status_code=200
         )
+
+        self.unauth_user_client.post(reverse('new_post'), {'text': self.text, 'group': self.group.id}, follow=True)
+        self.assertEqual(Post.objects.count(), 0)

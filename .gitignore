@@ -21,3 +21,5 @@ posts/static/
 db.sqlite3
 
 setup.cfg
+
+media/

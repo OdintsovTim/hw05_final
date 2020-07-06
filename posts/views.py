@@ -1,9 +1,10 @@
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+from django.urls import reverse
 
-from .forms import PostForm
-from .models import Post, Group
+from .forms import PostForm, CommentForm
+from .models import Post, Group, Comment
 from users.forms import User
 
 
@@ -28,18 +29,15 @@ def group_posts(request, slug):
 
 @login_required
 def new_post(request):
-    form = PostForm()
+    form = PostForm(request.POST or None, files=request.FILES or None)
     title = 'Добавить запись'
 
-    if request.method == 'POST':
-        form = PostForm(request.POST)
+    if request.method == 'POST' and form.is_valid():
+        post = form.save(commit=False)
+        post.author = request.user
+        post.save()
 
-        if form.is_valid():
-            post = form.save(commit=False)
-            post.author = request.user
-            post.save()
-
-            return redirect('index')
+        return redirect('index')
 
     return render(request, "new_post.html", {'form': form, 'title': title})
 
@@ -57,8 +55,10 @@ def profile(request, username):
 def post_view(request, username, post_id):
     post = get_object_or_404(Post.objects.select_related('author'), id=post_id, author__username=username)
     author = post.author
+    comments = Comment.objects.filter(post=post)
+    form = CommentForm()
 
-    return render(request, 'post.html', {'author': author, 'post': post})
+    return render(request, 'post.html', {'author': author, 'post': post, 'comments': comments, 'form': form})
 
 
 @login_required
@@ -70,7 +70,7 @@ def post_edit(request, username, post_id):
     if request.user != author:
         return redirect(f'/{author.username}/{post.id}/')
 
-    form = PostForm(request.POST or None, instance=post)
+    form = PostForm(request.POST or None, files=request.FILES or None, instance=post)
 
     if request.POST and form.is_valid():
         form.save()
@@ -79,3 +79,32 @@ def post_edit(request, username, post_id):
     title = 'Редактировать запись'
 
     return render(request, 'new_post.html', {'form': form, 'title': title, 'post': post})
+
+
+def page_not_found(request, exception):
+    return render(
+        request, 
+        "misc/404.html", 
+        {"path": request.path}, 
+        status=404
+    )
+
+
+def server_error(request):
+    return render(request, "misc/500.html", status=500)
+
+
+@login_required
+def add_comment(request, username, post_id):
+    form = CommentForm(request.POST or None)
+    post = get_object_or_404(Post.objects.select_related('author'), id=post_id, author__username=username)
+    author = post.author
+
+    if request.method == 'POST' and form.is_valid():
+        new_comment = form.save(commit=False)
+        new_comment.author = request.user
+        new_comment.post = post
+        new_comment.save()
+        form = CommentForm()
+
+    return redirect('post', username=username, post_id=post_id)

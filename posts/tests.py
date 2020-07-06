@@ -53,7 +53,7 @@ class TestPosts(TestCase):
             reverse('index'),
             reverse('profile', kwargs={'username': self.user.username}),
             reverse('post', kwargs={'username': self.user.username, 'post_id': post.id}),
-            reverse('groups', kwargs={'slug': self.group.slug}),
+            reverse('group', kwargs={'slug': self.group.slug}),
         )
 
         for url in urls:
@@ -77,7 +77,7 @@ class TestPosts(TestCase):
             reverse('index'),
             reverse('profile', kwargs={'username': self.user.username}),
             reverse('post', kwargs={'username': self.user.username, 'post_id': post.id}),
-            reverse('groups', kwargs={'slug': new_group.slug}),
+            reverse('group', kwargs={'slug': new_group.slug}),
         )
 
         self.client.post(

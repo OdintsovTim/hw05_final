@@ -7,14 +7,16 @@ from .models import Post
 class PostForm(ModelForm):
     class Meta:
         model = Post
-        fields = ['group', 'text']
+        fields = ['group', 'text', 'image']
         labels = {
             'group': 'Группа',
-            'text': 'Ваш текст'
+            'text': 'Ваш текст',
+            'image': 'Ваше изображение'
         }
         help_texts = {
             'group': 'Можно не выбирать группу',
-            'text': 'Минимум 10 символов'
+            'text': 'Минимум 10 символов',
+            'image': 'Загружать изображение необзательно'
         }
 
     def clean_text(self):

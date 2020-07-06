@@ -1,7 +1,6 @@
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.urls import reverse
 
 from .forms import PostForm, CommentForm
 from .models import Post, Group, Comment
@@ -83,9 +82,9 @@ def post_edit(request, username, post_id):
 
 def page_not_found(request, exception):
     return render(
-        request, 
-        "misc/404.html", 
-        {"path": request.path}, 
+        request,
+        "misc/404.html",
+        {"path": request.path},
         status=404
     )
 
@@ -98,7 +97,6 @@ def server_error(request):
 def add_comment(request, username, post_id):
     form = CommentForm(request.POST or None)
     post = get_object_or_404(Post.objects.select_related('author'), id=post_id, author__username=username)
-    author = post.author
 
     if request.method == 'POST' and form.is_valid():
         new_comment = form.save(commit=False)

@@ -1,5 +1,6 @@
 from django.test import TestCase, Client
 from django.urls import reverse
+from django.core.cache import cache
 
 from .models import User, Group, Post
 
@@ -86,6 +87,8 @@ class TestPosts(TestCase):
             follow=True
         )
 
+        cache.clear()
+
         for url in urls:
             response = self.client.get(url)
             self.assertContains(response, self.new_text)
@@ -101,3 +104,55 @@ class TestPosts(TestCase):
 
         self.unauth_user_client.post(reverse('new_post'), {'text': self.text, 'group': self.group.id}, follow=True)
         self.assertEqual(Post.objects.count(), 0)
+
+    def test_page_not_found(self):
+        response = self.client.get(reverse('profile', kwargs={'username': 'sdfsdf'}))
+        self.assertEqual(response.status_code, 404)
+
+    def test_image_existence(self):
+        with open('posts/test_image.jpg', 'rb') as img:
+            self.client.post(
+                reverse('new_post'),
+                {'text': self.text, 'group': self.group.id, 'image': img},
+                follow=True,
+            )
+        
+        self.assertEqual(Post.objects.filter(image__isnull=False).count(), 1)
+
+        post = Post.objects.all()[0]
+        urls = (
+            reverse('index'),
+            reverse('profile', kwargs={'username': self.user.username}),
+            reverse('post', kwargs={'username': self.user.username, 'post_id': post.id}),
+            reverse('group', kwargs={'slug': self.group.slug}),
+        )
+
+        cache.clear()
+
+        for url in urls:
+            response = self.client.get(url)
+            self.assertContains(response, '<img')
+
+    def test_wrong_image_format(self):
+        with open('posts/__init__.py', 'rb') as img:
+            self.client.post(
+                reverse('new_post'),
+                {'text': self.text, 'group': self.group.id, 'image': img},
+                follow=True,
+            )
+
+        self.assertEqual(Post.objects.filter(image__isnull=False).count(), 0)
+
+    def test_cashe(self):
+        response = self.client.get(reverse('index'))
+        with open('posts/test_image.jpg', 'rb') as img:
+            self.client.post(
+                reverse('new_post'),
+                {'text': self.text, 'group': self.group.id, 'image': img},
+                follow=True,
+            )
+        response = self.client.get(reverse('index'))
+
+        self.assertNotContains(response, '<img')
+        self.assertNotContains(response, self.text)
+        

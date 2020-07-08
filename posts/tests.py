@@ -2,7 +2,7 @@ from django.test import TestCase, Client
 from django.urls import reverse
 from django.core.cache import cache
 
-from .models import User, Group, Post
+from .models import User, Group, Post, Follow, Comment
 
 
 class TestPosts(TestCase):
@@ -116,7 +116,7 @@ class TestPosts(TestCase):
                 {'text': self.text, 'group': self.group.id, 'image': img},
                 follow=True,
             )
-        
+
         self.assertEqual(Post.objects.filter(image__isnull=False).count(), 1)
 
         post = Post.objects.all()[0]
@@ -155,4 +155,60 @@ class TestPosts(TestCase):
 
         self.assertNotContains(response, '<img')
         self.assertNotContains(response, self.text)
-        
+
+    def test_authorized_follow_unfollow(self):
+        new_user = User.objects.create_user(
+            first_name='Van',
+            last_name='Damm',
+            username='Vandamm',
+            email='vandamm@yandex.ru',
+            password='Zxcvb12345'
+        )
+        new_user2 = User.objects.create_user(
+            first_name='Ter',
+            last_name='Minator',
+            username='Terminator',
+            email='terminator@yandex.ru',
+            password='Zxcvb12345'
+        )
+        new_client = Client()
+        new_client2 = Client()
+        new_client.force_login(new_user)
+        new_client2.force_login(new_user2)
+
+        new_client.get(reverse('profile_follow', kwargs={'username': self.user.username}))
+        self.assertEqual(Follow.objects.count(), 1)
+
+        post = Post.objects.create(
+            text=self.text,
+            group=self.group,
+            author=self.user,
+        )
+        cache.clear()
+        response = new_client.get(reverse('follow_index'))
+        self.assertContains(response, self.text)
+        response = new_client2.get(reverse('follow_index'))
+        self.assertNotContains(response, self.text)
+
+        new_client.get(reverse('profile_unfollow', kwargs={'username': self.user.username}))
+        self.assertEqual(Follow.objects.count(), 0)
+
+    def test_authorized_comment(self):
+        post = Post.objects.create(
+            text=self.text,
+            group=self.group,
+            author=self.user,
+        )
+        comment = Comment.objects.create(
+            text=self.text,
+            author=self.user,
+            post=post,
+        )
+        self.assertEqual(Comment.objects.count(), 1)
+
+        self.unauth_user_client.post(
+            reverse('post', kwargs={'username': self.user.username, 'post_id': post.id}),
+            {'text': self.text},
+            follow=True
+        )
+        self.assertEqual(Comment.objects.count(), 1)

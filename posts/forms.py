@@ -32,3 +32,14 @@ class CommentForm(ModelForm):
     class Meta:
         model = Comment
         fields = ('text',)
+        help_texts = {
+            'text': 'Минимум 10 символов',
+        }
+
+    def clean_text(self):
+        data = self.cleaned_data['text']
+
+        if len(data) < 10:
+            raise forms.ValidationError('Слишком короткий комментарий, мы любим графоманов!')
+
+        return data

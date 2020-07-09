@@ -105,6 +105,8 @@ def server_error(request):
 def add_comment(request, username, post_id):
     form = CommentForm(request.POST or None)
     post = get_object_or_404(Post.objects.select_related('author'), id=post_id, author__username=username)
+    author = post.author
+    comments = Comment.objects.filter(post=post).select_related('author')
 
     if request.method == 'POST' and form.is_valid():
         new_comment = form.save(commit=False)
@@ -112,6 +114,8 @@ def add_comment(request, username, post_id):
         new_comment.post = post
         new_comment.save()
         form = CommentForm()
+    else:
+        return render(request, 'post.html', {'author': author, 'post': post, 'comments': comments, 'form': form})
 
     return redirect('post', username=username, post_id=post_id)
 

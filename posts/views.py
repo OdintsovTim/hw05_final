@@ -1,6 +1,7 @@
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+from django.db import IntegrityError
 
 from .forms import PostForm, CommentForm
 from .models import Post, Group, Comment, Follow
@@ -139,13 +140,12 @@ def follow_index(request):
 def profile_follow(request, username):
     follower = request.user
     following = get_object_or_404(User, username=username)
-    follow = Follow.objects.filter(user=follower, author=following)
 
-    if follower != following and not follow:
-        Follow.objects.create(
-            user=follower,
-            author=following
-        )
+    if follower != following:
+        try:
+            Follow.objects.create(user=follower, author=following)
+        except IntegrityError:
+            redirect('profile', username=username)
 
     return redirect('profile', username=username)
 
